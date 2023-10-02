@@ -13,6 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .config import Config
+from .config import Settings
 from .dbucket import DBucket
 from .redisconnection import rds
