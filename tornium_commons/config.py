@@ -13,85 +13,144 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
-import os
 import pathlib
+import secrets
 import typing
 
-from .redisconnection import rds
+from pydantic import (
+    AnyUrl,
+    BaseModel,
+    CockroachDsn,
+    Field,
+    MySQLDsn,
+    PostgresDsn,
+    RedisDsn,
+)
+
+from .altjson import dump, load
 
 
-class Config:
-    """
-    A Redis-based config caching system.
-    """
+class Settings(BaseModel):
+    bot_token: str = Field()
+    bot_application_id: int = Field()
+    bot_application_public: str = Field()
 
-    def __init__(self, file: typing.Union[pathlib.Path, str] = "settings.json"):
-        """
-        Initialize config with file path.
+    flask_secret: str = Field()
+    flask_domain: str = Field()
+    flask_admin_passphrase: str = Field()
 
-        Parameters
-        ----------
-        file : str, pathlib.Path
-            Path to the config file
-        """
+    db_type: typing.Literal["pg", "mysql", "oracle", "cockroach", "sqlite"] = Field(default="pg")
+    db_dsn: typing.Union[PostgresDsn, CockroachDsn, MySQLDsn, AnyUrl] = Field()
 
-        if type(file) == pathlib.Path:
-            self._file = file
-        else:
-            self._file = pathlib.Path(file)
+    redis_dsn: RedisDsn = Field()
 
-        self._data = {}
+    # Internal Data
+    _file: typing.Optional[pathlib.Path] = None
+    _loaded = False
 
-    def __getitem__(self, item):
-        return self._data.get(item, rds().get(f"tornium:settings:{item}"))
+    @classmethod
+    def from_json(cls, file: typing.Union[pathlib.Path, str] = "settings.json", disable_cache=False):
+        if not disable_cache:
+            from .redisconnection import rds
 
-    def __setitem__(self, key, value):
-        self._data[key] = value
-
-        if type(value) == bool:
-            value = int(value)
-
-        rds().set(key, value)
-        self.save()
-
-    def load(self):
-        """
-        Load data from config file into Redis cache.
-        """
-
-        if not self._file.exists():
+        file: pathlib.Path
+        if type(file) != pathlib.Path:
+            file = pathlib.Path(file)
+        elif not file.exists():
             raise FileNotFoundError
 
-        with open(self._file) as f:
-            loaded_data: dict = json.load(f)
+        loaded_data: dict = load(file)
 
         for data_key, data_value in loaded_data.items():
             if type(data_value) == bool:
                 data_value = int(data_value)
 
-            rds().set(f"tornium:settings:{data_key}", data_value)
+            if not disable_cache:
+                rds().set(f"tornium:settings:{data_key}", data_value)
 
-        self._data = loaded_data
+        self = cls(**loaded_data)
+        self._file = file
+        self._loaded = True
+
         return self
 
-    def save(self):
-        """
-        Save temporarily config data that can be read from `__getitem__` to the config file persistently.
-        """
+    def __getitem__(self, item, disable_cache=False):
+        if not disable_cache:
+            from .redisconnection import rds
+
+        if self._loaded:
+            return getattr(self, item)
+
+        if not disable_cache:
+            cached_value = rds().get(f"tornium:settings:{item}")
+        else:
+            cached_value = None
+
+        if cached_value is not None:
+            return cached_value
+
+        self.load()
+
+        if self._loaded:
+            return getattr(self, item)
+
+        raise ValueError("Settings unable to be loaded")
+
+    def __setitem__(self, key, value, disable_cache=False):
+        if not disable_cache:
+            from .redisconnection import rds
+
+        if self._file is None:
+            raise ValueError("File is not set")
+
+        setattr(self, key, value)
+
+        if type(value) == bool:
+            value = int(value)
+
+        if not disable_cache:
+            rds().set(key, value)
+
+        self.save()
+
+    def load(self, disable_cache=False):
+        if not disable_cache:
+            from .redisconnection import rds
 
         if not self._file.exists():
             raise FileNotFoundError
 
+        loaded_data: dict = load(self._file)
+
+        for data_key, data_value in loaded_data.items():
+            if type(data_value) == bool:
+                data_value = int(data_value)
+
+            if not disable_cache:
+                rds().set(f"tornium:settings:{data_key}", data_value)
+
+            setattr(self, data_key, data_value)
+
+        self._loaded = True
+        return self
+
+    def save(self):
+        if not self._file.exists():
+            raise FileNotFoundError
+
         with open(self._file, "w") as f:
-            json.dump(self._data, f, indent=4)
+            f.write(self.model_dump_json(indent=4))
 
         return self
 
-    def regen_secret(self):
-        """
-        Regenerate and save the Flask secret to the config file and Redis cache.
-        """
+    def regen_secret(self, nbytes: int = 32):
+        self.__setitem__("flask_secret", secrets.token_hex(nbytes))
+        return self.__getitem__("flask_secret")
 
-        self.__setitem__("secret", str(os.urandom(32)))
-        return self.__getitem__("secret")
+    def __iter__(self):
+        key: str
+        for key, value in super().__iter__():
+            if key.startswith("_"):
+                continue
+
+            yield key, value
