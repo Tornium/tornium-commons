@@ -13,16 +13,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import Document, FloatField, IntField, LongField
+from peewee import BigIntegerField, DateTimeField, IntegerField
+from playhouse.postgres_ext import JSONField
+
+from .base_model import BaseModel
 
 
-class TickModel(Document):
-    meta = {"indexes": ["price"]}
+class PersonalStats(BaseModel):
+    #### pstat_id ####
+    # tid = bin(tid << 8)
+    # timestamp = bin(timestamp)
+    # pstat_id = int(tid, 2) + int(timestamp, 2)
+    ##################
 
-    tick_id = IntField(primary_key=True)
-    timestamp = IntField()
-    stock_id = IntField()
-    price = FloatField()
-    cap = LongField()
-    shares = LongField()
-    investors = IntField()
+    pstat_id = BigIntegerField(primary_key=True)
+    tid = IntegerField()
+    timestamp = DateTimeField()
+
+    # Uses jsonb as size of values is not known beyond "int"
+    ps_data = JSONField(unindexed=True)

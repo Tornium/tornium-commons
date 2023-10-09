@@ -13,17 +13,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import DictField, DynamicDocument, IntField, ListField, UUIDField
+from peewee import (
+    DateTimeField,
+    ForeignKeyField,
+    IntegerField,
+    SmallIntegerField,
+    TextField,
+    UUIDField,
+)
+from playhouse.postgres_ext import ArrayField
+
+from .base_model import BaseModel
+from .personal_stats import PersonalStats
 
 
-class MemberReportModel(DynamicDocument):
+class MemberReport(BaseModel):
     rid = UUIDField(primary_key=True)
-    created_at = IntField(required=True)
-    last_updated = IntField(required=True)
-    requested_by_user = IntField()  # None if not requested for a user
-    requested_by_faction = IntField()  # None if not requested for a faction
-    requested_data = ListField()
-    status = IntField(default=0)
+    created_at = DateTimeField()
+    last_updated = DateTimeField()
+    requested_by_user = IntegerField()
+    requsted_by_faction = IntegerField()
+    requested_data = ArrayField(TextField)
+    status = SmallIntegerField()
 
     # Report Status
     # 0: Not started
@@ -31,10 +42,9 @@ class MemberReportModel(DynamicDocument):
     # 2: Completed
     # 999: Error
 
-    faction_id = IntField(required=True)
-    start_timestamp = IntField(required=True)
-    end_timestamp = IntField(required=True)
+    faction_tid = IntegerField()
+    start_timestamp = DateTimeField()
+    end_timestamp = DateTimeField()
 
-    # TID: int -> PersonalStatModel.pid: int
-    start_ps = DictField()
-    end_ps = DictField()
+    start_ps = ArrayField(ForeignKeyField(PersonalStats))
+    end_ps = ArrayField(ForeignKeyField(PersonalStats))

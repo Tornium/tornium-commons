@@ -13,15 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from mongoengine import BooleanField, DynamicDocument, IntField
+from peewee import BooleanField, DateTimeField, ForeignKeyField, IntegerField
+
+from .base_model import BaseModel
+from .user import User
 
 
-class StatModel(DynamicDocument):
-    meta = {"indexes": ["tid", ("+globalstat", "addedid", "addedfactiontid"), "addedid"]}
-
-    tid = IntField(default=0)
-    battlescore = IntField(default=0)
-    timeadded = IntField(default=0)
-    addedid = IntField(default=0)
-    addedfactiontid = IntField(default=0)
-    globalstat = BooleanField(default=False)
+class Stat(BaseModel):
+    tid = ForeignKeyField(User, index=True)
+    battlescore = IntegerField()
+    time_added = DateTimeField()
+    added_tid = IntegerField()
+    added_faction_tid = IntegerField()
+    global_stat = BooleanField(default=True)

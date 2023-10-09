@@ -12,23 +12,26 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import datetime
+import itertools
 import typing
 
 import celery
-from mongoengine import DynamicDocument, IntField, StringField
-from pymongo import UpdateOne
+from peewee import BigIntegerField, CharField, SmallIntegerField, TextField, chunked
 
-from .. import rds
+from ..db_connection import db
+from ..redisconnection import rds
+from .base_model import BaseModel
 
 
-class ItemModel(DynamicDocument):
-    tid = IntField(required=True)
-    name = StringField(default="")
-    description = StringField(default="")
-    type = StringField(default="")
-    market_value = IntField(default=0)
-    circulation = IntField(default=0)
+class Item(BaseModel):
+    tid = SmallIntegerField(primary_key=True)
+    name = CharField()
+    description = TextField()
+    item_type = CharField()
+    market_value = BigIntegerField()
+    circulation = BigIntegerField()
 
     @staticmethod
     def update_items(torn_get: typing.Union[typing.Callable, celery.Task], api_key: str):
@@ -73,27 +76,26 @@ class ItemModel(DynamicDocument):
             endpoint="torn/?selections=items",
             key=api_key,
         )
-        bulk_operations = []
 
+        bulk_data = []
+
+        # TODO: Combine DB chunked insert and data compilation
         item_id: int
         item: dict
         for item_id, item in items_data["items"].items():
-            bulk_operations.append(
-                UpdateOne(
-                    {"tid": int(item_id)},
-                    {
-                        "$set": {
-                            "tid": int(item_id),
-                            "name": item.get("name", ""),
-                            "description": item.get("description", ""),
-                            "type": item.get("type", ""),
-                            "market_value": item.get("market_value", 0),
-                            "circulation": item.get("circulation", 0),
-                        }
-                    },
-                    upsert=True,
-                )
+            bulk_data.append(
+                {
+                    "tid": int(item_id),
+                    "name": item.get("name", ""),
+                    "description": item.get("description", ""),
+                    "type": item.get("type", ""),
+                    "market_value": item.get("market_value", 0),
+                    "circulation": item.get("circulation", 0),
+                }
             )
 
-        ItemModel._get_collection().bulk_write(bulk_operations, ordered=False)
+        with db().atomic():
+            for batch in chunked(bulk_data, 100):
+                Item.replace_many(batch).execute()
+
         redis_client.set("tornium:items:last-update", int(datetime.datetime.utcnow().timestamp()), ex=5400)  # 1.5 hours
