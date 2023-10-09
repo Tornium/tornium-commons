@@ -13,29 +13,36 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .faction import Faction
-from .faction_position import FactionPosition
-from .item import Item
-from .member_report import MemberReport
-from .notification import Notification
-from .organized_crime import OrganizedCrime
-from .personal_stats import PersonalStats
-from .server import Server
-from .stock_tick import StockTick
-from .user import User
-from .withdrawal import Withdrawal
+from functools import wraps
 
-__all__ = [
-    "Faction",
-    "FactionPosition",
-    "Item",
-    "MemberReport",
-    "Notification",
-    "OrganizedCrime",
-    "PersonalStats",
-    "Server",
-    "Stat",
-    "StockTick",
-    "User",
-    "Withdrawal",
-]
+from playhouse.postgres_ext import PostgresqlExtDatabase
+
+from .config import Settings
+
+_db = None
+
+
+def db():
+    global _db
+
+    if _db is not None:
+        return _db
+
+    _s = Settings.from_cache()
+    _db = PostgresqlExtDatabase("Tornium", host=_s.db_dsn)
+
+    return _db
+
+
+def requires_db_connection(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        _inner_db = db()
+        _inner_db.connect()
+
+        _inner = f(database=_inner_db, *args, **kwargs)
+
+        _inner_db.close()
+        return _inner
+
+    return wrapper

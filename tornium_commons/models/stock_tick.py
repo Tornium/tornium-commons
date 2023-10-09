@@ -11,9 +11,24 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.\
 
-from .config import Settings
-from .db_connection import db
-from .dbucket import DBucket
-from .redisconnection import rds
+from peewee import (
+    BigIntegerField,
+    DateTimeField,
+    FloatField,
+    IntegerField,
+    SmallIntegerField,
+)
+
+from .base_model import BaseModel
+
+
+class StockTick(BaseModel):
+    tick_id = IntegerField(primary_key=True)
+    timestamp = DateTimeField()
+    stock_id = SmallIntegerField()
+    price = FloatField()
+    cap = BigIntegerField()
+    shares = BigIntegerField()
+    investors = IntegerField()

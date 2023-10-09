@@ -16,10 +16,10 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers"
 ]
 dependencies = [
-    "boltons ~= 21.0.0",
-    "pony ~= 0.7.17",
+    "boltons",
     "pydantic",
-    "redis ~= 4.5.1"
+    "peewee",
+    "redis ~= 5.0.0"
 ]
 description = "Reusable components for Tornium"
 keywords = ["tornium"]

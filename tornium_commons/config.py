@@ -17,15 +17,7 @@ import pathlib
 import secrets
 import typing
 
-from pydantic import (
-    AnyUrl,
-    BaseModel,
-    CockroachDsn,
-    Field,
-    MySQLDsn,
-    PostgresDsn,
-    RedisDsn,
-)
+from pydantic import BaseModel, Field, PostgresDsn, RedisDsn
 
 from .altjson import dump, load
 
@@ -39,8 +31,7 @@ class Settings(BaseModel):
     flask_domain: str = Field()
     flask_admin_passphrase: str = Field()
 
-    db_type: typing.Literal["pg", "mysql", "oracle", "cockroach", "sqlite"] = Field(default="pg")
-    db_dsn: typing.Union[PostgresDsn, CockroachDsn, MySQLDsn, AnyUrl] = Field()
+    db_dsn: PostgresDsn = Field()
 
     redis_dsn: RedisDsn = Field()
 
@@ -70,6 +61,24 @@ class Settings(BaseModel):
 
         self = cls(**loaded_data)
         self._file = file
+        self._loaded = True
+
+        return self
+
+    @classmethod
+    def from_cache(cls):
+        from .redisconnection import rds
+
+        _cached_data = {}
+
+        for settings_key in Settings.__fields__:
+            if settings_key.startswith("_"):
+                continue
+
+            _cached_data[settings_key] = rds().get(f"tornium:settings:{settings_key}")
+
+        self = cls(**_cached_data)
+        self._file = None
         self._loaded = True
 
         return self
