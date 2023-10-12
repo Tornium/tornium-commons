@@ -14,11 +14,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
-import itertools
 import typing
 
 import celery
-from peewee import BigIntegerField, CharField, SmallIntegerField, TextField, chunked
+from peewee import (
+    BigIntegerField,
+    CharField,
+    DoesNotExist,
+    SmallIntegerField,
+    TextField,
+    chunked,
+)
 
 from ..db_connection import db
 from ..redisconnection import rds
@@ -96,6 +102,15 @@ class Item(BaseModel):
 
         with db().atomic():
             for batch in chunked(bulk_data, 100):
-                Item.replace_many(batch).execute()
+                Item.replace_many(batch).execute()  # TODO: Might not work in PG (might be meant for sqlite)
 
         redis_client.set("tornium:items:last-update", int(datetime.datetime.utcnow().timestamp()), ex=5400)  # 1.5 hours
+
+    @staticmethod
+    def item_str(tid: int) -> str:
+        try:
+            _item: Item = Item.select(Item.name).get_by_id(tid)
+        except DoesNotExist:
+            return f"Unknown {tid}"
+
+        return f"{_item.name} [{tid}]"

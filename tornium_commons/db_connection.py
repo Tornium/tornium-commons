@@ -17,19 +17,19 @@ from functools import wraps
 
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
-from .config import Settings
+from .config import Config
 
 _db = None
 
 
-def db():
+def db() -> PostgresqlExtDatabase:
     global _db
 
     if _db is not None:
         return _db
 
-    _s = Settings.from_cache()
-    _db = PostgresqlExtDatabase("Tornium", host=_s.db_dsn)
+    _s = Config.from_cache()
+    _db = PostgresqlExtDatabase("Tornium", dsn=_s.db_dsn.unicode_string())
 
     return _db
 
@@ -40,7 +40,8 @@ def requires_db_connection(f):
         _inner_db = db()
         _inner_db.connect()
 
-        _inner = f(database=_inner_db, *args, **kwargs)
+        kwargs["database"] = _inner_db
+        _inner = f(*args, **kwargs)
 
         _inner_db.close()
         return _inner

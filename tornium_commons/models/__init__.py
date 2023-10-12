@@ -21,6 +21,7 @@ from .notification import Notification
 from .organized_crime import OrganizedCrime
 from .personal_stats import PersonalStats
 from .server import Server
+from .stat import Stat
 from .stock_tick import StockTick
 from .user import User
 from .withdrawal import Withdrawal

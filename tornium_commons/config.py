@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field, PostgresDsn, RedisDsn
 from .altjson import dump, load
 
 
-class Settings(BaseModel):
+class Config(BaseModel):
     bot_token: str = Field()
     bot_application_id: int = Field()
     bot_application_public: str = Field()
@@ -31,6 +31,7 @@ class Settings(BaseModel):
     flask_domain: str = Field()
     flask_admin_passphrase: str = Field()
 
+    # db_dsn would follow https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS
     db_dsn: PostgresDsn = Field()
 
     redis_dsn: RedisDsn = Field()
@@ -71,7 +72,7 @@ class Settings(BaseModel):
 
         _cached_data = {}
 
-        for settings_key in Settings.__fields__:
+        for settings_key in Config.__fields__:
             if settings_key.startswith("_"):
                 continue
 

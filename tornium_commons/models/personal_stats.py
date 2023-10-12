@@ -31,4 +31,4 @@ class PersonalStats(BaseModel):
     timestamp = DateTimeField()
 
     # Uses jsonb as size of values is not known beyond "int"
-    ps_data = JSONField(unindexed=True)
+    ps_data = JSONField(index=False)

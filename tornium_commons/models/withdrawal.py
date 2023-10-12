@@ -26,12 +26,16 @@ from .base_model import BaseModel
 
 
 class Withdrawal(BaseModel):
+    # TODO: Switch PK to GUID instead of WID (racing conditions)
+
     wid = IntegerField(primary_key=True)
     guid = UUIDField(index=True)
     faction_tid = IntegerField()
     amount = BigIntegerField()
     cash_request = BooleanField(default=True)
+
     requester = IntegerField()
+    time_requested = DateTimeField()
 
     # Withdrawal status
     # 0: unfulfilled
@@ -40,9 +44,7 @@ class Withdrawal(BaseModel):
     # 3: cancelled by system
     status = SmallIntegerField()
 
-    time_requested = DateTimeField()
-
-    fulfiller = IntegerField()
-    time_fulfilled = IntegerField()
+    fulfiller = IntegerField(null=True)  # -1: someone
+    time_fulfilled = DateTimeField(null=True)
 
     withdrawal_message = BigIntegerField()  # Discord message ID
