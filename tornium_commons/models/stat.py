@@ -24,5 +24,5 @@ class Stat(BaseModel):
     battlescore = IntegerField()
     time_added = DateTimeField()
     added_tid = IntegerField()
-    added_faction_tid = IntegerField()
+    added_faction_tid = IntegerField(null=True)
     global_stat = BooleanField(default=True)

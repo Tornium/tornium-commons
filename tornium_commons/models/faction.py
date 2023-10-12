@@ -19,40 +19,63 @@ from peewee import (
     CharField,
     DateTimeField,
     DeferredForeignKey,
-    ForeignKeyField,
     IntegerField,
 )
 from playhouse.postgres_ext import ArrayField, JSONField
 
 from .base_model import BaseModel
-from .server import Server
+from .faction_position import FactionPosition
 
 
 class Faction(BaseModel):
     # Basic data
     tid = IntegerField(primary_key=True)
-    name = CharField(max_length=25)
-    tag = CharField(max_length=4)
-    respect = IntegerField()
-    capacity = IntegerField()
-    leader = DeferredForeignKey("User")
-    coleader = DeferredForeignKey("User")
+    name = CharField(max_length=25, null=True)
+    tag = CharField(max_length=4, null=True)
+    respect = IntegerField(null=True)
+    capacity = IntegerField(null=True)
+    leader = DeferredForeignKey("User", null=True)
+    coleader = DeferredForeignKey("User", null=True)
 
     # API keys
     # TODO: Switch to key db (#188)
-    aa_keys = ArrayField(CharField(max_length=15))
+    aa_keys = ArrayField(CharField, field_kwargs={"max_length": 15}, default=[])
 
     # Guild data
-    guild = ForeignKeyField(Server)
+    guild = DeferredForeignKey("Server", null=True)  # noqa: F712
 
     # Configuration data
-    stats_db_enabled = BooleanField(default=True)
-    stats_db_global = BooleanField(default=True)
+    stats_db_enabled = BooleanField(default=True)  # noqa: F712
+    stats_db_global = BooleanField(default=True)  # noqa: F712
 
     # OD data
-    od_channel = BigIntegerField()
-    od_data = JSONField()
+    od_channel = BigIntegerField(null=True)
+    od_data = JSONField(null=True)
 
     # Internal data
-    last_members = DateTimeField()
-    last_attacks = DateTimeField()
+    last_members = DateTimeField(null=True)
+    last_attacks = DateTimeField(null=True)
+
+    def get_bankers(self):
+        from .user import User
+
+        banker_positions = FactionPosition.select(FactionPosition.pid).where(
+            (FactionPosition.faction_tid == self.tid)
+            & (
+                (FactionPosition.give_money == True)  # noqa: E712
+                | (FactionPosition.give_points == True)  # noqa: E712
+                | (FactionPosition.adjust_balances == True)  # noqa: E712
+            )
+        )
+        bankers = set()
+
+        _position: FactionPosition
+        for _position in banker_positions:
+            bankers.update([user.tid for user in User.select(User.tid).where(User.faction_position == _position.pid)])
+
+        if self.leader != 0:
+            bankers.add(self.leader)
+        if self.coleader != 0:
+            bankers.add(self.coleader)
+
+        return bankers

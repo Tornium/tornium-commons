@@ -14,8 +14,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from peewee import (
+    BigIntegerField,
     DateTimeField,
-    ForeignKeyField,
     IntegerField,
     SmallIntegerField,
     TextField,
@@ -31,8 +31,8 @@ class MemberReport(BaseModel):
     rid = UUIDField(primary_key=True)
     created_at = DateTimeField()
     last_updated = DateTimeField()
-    requested_by_user = IntegerField()
-    requsted_by_faction = IntegerField()
+    requested_by_user = IntegerField(null=True)
+    requested_by_faction = IntegerField(null=True)
     requested_data = ArrayField(TextField)
     status = SmallIntegerField()
 
@@ -46,5 +46,7 @@ class MemberReport(BaseModel):
     start_timestamp = DateTimeField()
     end_timestamp = DateTimeField()
 
-    start_ps = ArrayField(ForeignKeyField(PersonalStats))
-    end_ps = ArrayField(ForeignKeyField(PersonalStats))
+    # PostgreSQL currently does not support arrays of foreign keys
+    # Reference: https://stackoverflow.com/questions/41054507/postgresql-array-of-elements-that-each-are-a-foreign-key
+    start_ps = ArrayField(BigIntegerField, index=False, default=[])
+    end_ps = ArrayField(BigIntegerField, index=False, default=[])

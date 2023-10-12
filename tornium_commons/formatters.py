@@ -21,8 +21,9 @@ import typing
 from decimal import Decimal
 
 from boltons.timeutils import relative_time
+from peewee import DoesNotExist
 
-from .models import ItemModel
+from .models import Item
 
 
 def get_tid(name: str) -> int:
@@ -270,9 +271,9 @@ def str_matches(input_str: str, items: typing.Union[list, set], starts: bool = F
         return [item for item in items if item in input_str]
 
 
-def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemModel]]:
+def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[Item]]:
     """
-    Parse an item string into the item quantity and ItemModel
+    Parse an item string into the item quantity and Item
 
     Parameters
     ----------
@@ -283,13 +284,13 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemMode
     -------
     quantity : int
         Number of items
-    item : ItemModel, optional
+    item : Item, optional
         Database entry of the item if one exists
 
     Examples
     --------
     >>> parse_item_str("3x Feathery Hotel Coupon")
-    (3, ItemModel(367))
+    (3, Item(367))
     >>> parse_item_str("1x Random Property")
     (1, None)
     """
@@ -305,7 +306,11 @@ def parse_item_str(input_str: str) -> typing.Tuple[int, typing.Optional[ItemMode
         if quantity <= 0:
             raise ValueError("Illegal quantity")
 
-    item: typing.Optional[ItemModel] = ItemModel.objects(name=item_str).first()
+    item: typing.Optional[Item]
+    try:
+        item = Item.get(Item.name == item_str)
+    except DoesNotExist:
+        item = None
 
     return quantity, item
 

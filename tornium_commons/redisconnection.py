@@ -18,7 +18,7 @@ import pathlib
 
 import redis
 
-from .config import Settings
+from .config import Config
 
 
 def rds() -> redis.Redis:
@@ -30,7 +30,7 @@ def rds() -> redis.Redis:
     connection : redis.Redis
     """
 
-    redis_dsn = Settings.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True)
+    redis_dsn = Config.from_json(disable_cache=True).__getitem__("redis_dsn", disable_cache=True)
     return redis.from_url(str(redis_dsn), decode_responses=True)
 
 
