@@ -41,15 +41,20 @@ class Config(BaseModel):
     _loaded = False
 
     @classmethod
-    def from_json(cls, file: typing.Union[pathlib.Path, str] = "settings.json", disable_cache=False):
+    def from_json(
+        cls,
+        file: typing.Union[pathlib.Path, str] = "settings.json",
+        disable_cache=False,
+    ):
         if not disable_cache:
             from .redisconnection import rds
 
         file: pathlib.Path
-        if type(file) != pathlib.Path:
+        if not isinstance(file, pathlib.Path):
             file = pathlib.Path(file)
-        elif not file.exists():
-            raise FileNotFoundError
+
+        if not file.exists():
+            raise FileNotFoundError from None
 
         loaded_data: dict = load(file)
 
@@ -104,14 +109,14 @@ class Config(BaseModel):
         if self._loaded:
             return getattr(self, item)
 
-        raise ValueError("Settings unable to be loaded")
+        raise ValueError("Settings unable to be loaded") from None
 
     def __setitem__(self, key, value, disable_cache=False):
         if not disable_cache:
             from .redisconnection import rds
 
         if self._file is None:
-            raise ValueError("File is not set")
+            raise ValueError("File is not set") from None
 
         setattr(self, key, value)
 
@@ -128,7 +133,7 @@ class Config(BaseModel):
             from .redisconnection import rds
 
         if not self._file.exists():
-            raise FileNotFoundError
+            raise FileNotFoundError from None
 
         loaded_data: dict = load(self._file)
 
@@ -146,7 +151,7 @@ class Config(BaseModel):
 
     def save(self):
         if not self._file.exists():
-            raise FileNotFoundError
+            raise FileNotFoundError from None
 
         with open(self._file, "w") as f:
             f.write(self.model_dump_json(indent=4))

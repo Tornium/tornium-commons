@@ -92,19 +92,39 @@ class Item(BaseModel):
             bulk_data.append(
                 {
                     "tid": int(item_id),
-                    "name": item.get("name", ""),
-                    "description": item.get("description", ""),
-                    "type": item.get("type", ""),
+                    "name": item.get("name", "").replace('"', "''").replace("'", "''"),
+                    "description": item.get("description", "").replace('"', "''").replace("'", "''").replace("%", "%%"),
+                    "item_type": item.get("type", ""),
                     "market_value": item.get("market_value", 0),
                     "circulation": item.get("circulation", 0),
                 }
             )
 
         with db().atomic():
-            for batch in chunked(bulk_data, 100):
-                Item.replace_many(batch).execute()  # TODO: Might not work in PG (might be meant for sqlite)
+            for batch in chunked(bulk_data, 10):
+                cmd = f"""INSERT INTO item (tid, name, description, item_type, market_value, circulation)
+                    VALUES
+                """
 
-        redis_client.set("tornium:items:last-update", int(datetime.datetime.utcnow().timestamp()), ex=5400)  # 1.5 hours
+                for data in batch:
+                    cmd += f"({data['tid']}, '{data['name']}', '{data['description']}', '{data['item_type']}', {data['market_value']}, {data['circulation']}),\n"
+
+                cmd = cmd[:-2] + "\n"
+                cmd += f"""ON CONFLICT (tid) DO UPDATE
+                    SET name = EXCLUDED.name,
+                        description = EXCLUDED.description,
+                        item_type = EXCLUDED.item_type,
+                        market_value = EXCLUDED.market_value,
+                        circulation = EXCLUDED.circulation;
+                """
+
+                db().execute_sql(cmd)
+
+        redis_client.set(
+            "tornium:items:last-update",
+            int(datetime.datetime.utcnow().timestamp()),
+            ex=5400,
+        )  # 1.5 hours
 
     @staticmethod
     def item_str(tid: int) -> str:

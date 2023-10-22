@@ -207,13 +207,13 @@ def bs_to_range(battlescore: typing.Union[int, float]) -> tuple:
     return math.floor(pow(battlescore, 2) / 4), math.floor(pow(battlescore, 2) / 2.75)
 
 
-def torn_timestamp(timestamp: typing.Optional[typing.Union[int, float]] = None) -> str:
+def torn_timestamp(timestamp: typing.Optional[typing.Union[int, float, datetime.datetime]] = None) -> str:
     """
     Return a formatted timestamp string of the passed timestamp or current time in the UTC timezone.
 
     Parameters
     ----------
-    timestamp : int, float, optional
+    timestamp : int, float, datetime.datetime, optional
         Unix timestamp
 
     Returns
@@ -223,9 +223,12 @@ def torn_timestamp(timestamp: typing.Optional[typing.Union[int, float]] = None) 
     """
 
     if timestamp is None:
-        return datetime.datetime.utcnow().strftime("%m/%d %H:%M:%S TCT")
-    else:
-        return datetime.datetime.fromtimestamp(timestamp).strftime("%m/%d %H:%M:%S TCT")
+        timestamp = datetime.datetime.utcnow()
+    elif not isinstance(timestamp, datetime.datetime):
+        timestamp = datetime.datetime.fromtimestamp(timestamp)
+
+    timestamp: datetime.datetime
+    return timestamp.strftime("%m/%d %H:%M:%S TCT")
 
 
 def remove_html(text: str) -> str:
