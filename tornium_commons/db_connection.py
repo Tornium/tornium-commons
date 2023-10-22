@@ -28,7 +28,7 @@ def db() -> PostgresqlExtDatabase:
     if _db is not None:
         return _db
 
-    _s = Config.from_cache()
+    _s = Config.from_json()
     _db = PostgresqlExtDatabase("Tornium", dsn=_s.db_dsn.unicode_string())
 
     return _db

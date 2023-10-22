@@ -31,11 +31,11 @@ def _orjson_loaded():
 
 
 def load(*args, **kwargs):
-    if _orjson_loaded():
-        with open(args[0], "rb") as f:
+    with open(args[0], "rb") as f:
+        if _orjson_loaded():
             return orjson.loads(f.read(), *args[1:], **kwargs)
-    else:
-        return json.load(*args, **kwargs)
+        else:
+            return json.load(f, *args[1:], **kwargs)
 
 
 def loads(*args, **kwargs):
@@ -49,15 +49,14 @@ def dump(*args, native=False, **kwargs):
     # args[0]: obj
     # args[1]: fp
 
-    if _orjson_loaded():
-        with open(args[1], "w") as f:
+    with open(args[1], "w") as f:
+        if _orjson_loaded():
             if native:
                 return json.dump(args[0], f, **kwargs)
 
-            f.write(orjson.dumps(args[0]))
-            return
-    else:
-        return json.dump(*args, **kwargs)
+            return f.write(orjson.dumps(args[0]))
+        else:
+            return json.dump(args[0], f, **kwargs)
 
 
 def dumps(*args, native=False, **kwargs):

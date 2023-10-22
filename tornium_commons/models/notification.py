@@ -45,6 +45,7 @@ class Notification(BaseModel):
     target = IntegerField()  # TODO: Verify this as original used DynamicField
     persistent = BooleanField()
     value = IntegerField()  # TODO: Verify this as original used DynamicField
+    enabled = BooleanField(default=False)
     options = JSONField(index=False)
 
     # TODO: Possibly add enabled as field (instead of element of Notification.options)
