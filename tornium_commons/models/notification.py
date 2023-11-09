@@ -17,12 +17,15 @@ from peewee import (
     BigIntegerField,
     BooleanField,
     DateTimeField,
+    DoubleField,
     IntegerField,
     SmallIntegerField,
+    ForeignKeyField,
 )
 from playhouse.postgres_ext import JSONField
 
 from .base_model import BaseModel
+from .user import User
 
 
 class Notification(BaseModel):
@@ -35,17 +38,15 @@ class Notification(BaseModel):
     # 3: item notif
     ###############
 
-    invoker = IntegerField()
+    invoker = ForeignKeyField(User)
     time_created = DateTimeField()
 
-    recipient = IntegerField()
+    recipient = BigIntegerField()
     recipient_guild = BigIntegerField()  # 0: DM
 
     n_type = SmallIntegerField()
-    target = IntegerField()  # TODO: Verify this as original used DynamicField
+    target = BigIntegerField()
     persistent = BooleanField()
-    value = IntegerField()  # TODO: Verify this as original used DynamicField
     enabled = BooleanField(default=False)
     options = JSONField(index=False)
 
-    # TODO: Possibly add enabled as field (instead of element of Notification.options)

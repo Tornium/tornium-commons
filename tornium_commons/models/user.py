@@ -71,7 +71,7 @@ class User(BaseModel):
     battlescore_update = DateTimeField(null=True)
 
     # Security data
-    security = SmallIntegerField(default=0)
+    security = SmallIntegerField(null=True)
     otp_secret = TextField(null=True)
     otp_backups = ArrayField(TextField, index=False, default=[])
 

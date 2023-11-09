@@ -30,8 +30,8 @@ from .faction_position import FactionPosition
 class Faction(BaseModel):
     # Basic data
     tid = IntegerField(primary_key=True)
-    name = CharField(max_length=25, null=True)
-    tag = CharField(max_length=4, null=True)
+    name = CharField(max_length=50, null=True)
+    tag = CharField(max_length=8, null=True)
     respect = IntegerField(null=True)
     capacity = IntegerField(null=True)
     leader = DeferredForeignKey("User", null=True)
@@ -39,7 +39,7 @@ class Faction(BaseModel):
 
     # API keys
     # TODO: Switch to key db (#188)
-    aa_keys = ArrayField(CharField, field_kwargs={"max_length": 15}, default=[])
+    aa_keys = ArrayField(CharField, field_kwargs={"max_length": 16}, default=[])
 
     # Guild data
     guild = DeferredForeignKey("Server", null=True)  # noqa: F712

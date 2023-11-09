@@ -20,9 +20,11 @@ from .user import User
 
 
 class Stat(BaseModel):
-    tid = ForeignKeyField(User, index=True)
-    battlescore = IntegerField()
+    tid = ForeignKeyField(User)
+    battlescore = IntegerField(index=True)
     time_added = DateTimeField()
-    added_tid = IntegerField()
-    added_faction_tid = IntegerField(null=True)
-    global_stat = BooleanField(default=True)
+    added_group = IntegerField(default=0, index=True)
+
+    # Groups
+    # 0 - universally accepted
+    # faction tid - for specific factions
