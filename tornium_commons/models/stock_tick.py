@@ -25,7 +25,7 @@ from .base_model import BaseModel
 
 
 class StockTick(BaseModel):
-    tick_id = IntegerField(primary_key=True)
+    tick_id = BigIntegerField(primary_key=True)
     timestamp = DateTimeField()
     stock_id = SmallIntegerField()
     price = FloatField()

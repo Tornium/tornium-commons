@@ -27,17 +27,17 @@ class Server(BaseModel):
     # Basic data
     sid = BigIntegerField(primary_key=True)
     name = TextField()
-    admins = ArrayField(IntegerField, default=[])  # Array of admin user IDs
+    admins = ArrayField(IntegerField, default=[], index=False)  # Array of admin user IDs
     icon = TextField(null=True)  # hash of Discord server icon
 
     # Faction data
-    factions = ArrayField(IntegerField, default=[])  # Array of faction IDs
+    factions = ArrayField(IntegerField, default=[], index=False)  # Array of faction IDs
 
     # Verification configuration
     verify_enabled = BooleanField(default=False)
     verify_template = TextField(default="{{ name }} [{{ tid }}]")
-    verified_roles = ArrayField(BigIntegerField, default=[])
-    exclusion_roles = ArrayField(BigIntegerField, default=[])
+    verified_roles = ArrayField(BigIntegerField, default=[], index=False)
+    exclusion_roles = ArrayField(BigIntegerField, default=[], index=False)
     faction_verify = JSONField(default={})
     verify_log_channel = BigIntegerField(default=0)
 
@@ -64,12 +64,12 @@ class Server(BaseModel):
     # Assist configuration
     assist_channel = BigIntegerField(default=0)
     assist_factions = ArrayField(IntegerField, default=[])  # List of factions that can send assists to the server
-    assist_smoker_roles = ArrayField(BigIntegerField, default=[])
-    assist_tear_roles = ArrayField(BigIntegerField, default=[])
-    assist_l0_roles = ArrayField(BigIntegerField, default=[])  # 500m+
-    assist_l1_roles = ArrayField(BigIntegerField, default=[])  # 1b+
-    assist_l2_roles = ArrayField(BigIntegerField, default=[])  # 2b+
-    assist_l3_roles = ArrayField(BigIntegerField, default=[])  # 5b+
+    assist_smoker_roles = ArrayField(BigIntegerField, default=[], index=False)
+    assist_tear_roles = ArrayField(BigIntegerField, default=[], index=False)
+    assist_l0_roles = ArrayField(BigIntegerField, default=[], index=False)  # 500m+
+    assist_l1_roles = ArrayField(BigIntegerField, default=[], index=False)  # 1b+
+    assist_l2_roles = ArrayField(BigIntegerField, default=[], index=False)  # 2b+
+    assist_l3_roles = ArrayField(BigIntegerField, default=[], index=False)  # 5b+
 
     # OC configuration
     oc_config = JSONField(default={})
@@ -77,7 +77,7 @@ class Server(BaseModel):
     # Stocks configuration
     # TODO: rework this schema before this feature is released
     stocks_channel = BigIntegerField(default=0)
-    stocks_config = JSONField(default=[])
+    stocks_config = JSONField(default=[], index=False)
 
     def get_text_channels(self, discord_get: typing.Union[typing.Callable, celery.Task], api=False):
         def parse(value):
