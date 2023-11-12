@@ -26,6 +26,7 @@ class Config(BaseModel):
     bot_token: str = Field()
     bot_application_id: int = Field()
     bot_application_public: str = Field()
+    bot_client_secret: str = Field()
 
     flask_secret: str = Field()
     flask_domain: str = Field()
