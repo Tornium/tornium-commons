@@ -14,6 +14,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .config import Config
-from .db_connection import db, requires_db_connection
+from .db_connection import db
 from .dbucket import DBucket
 from .redisconnection import rds
