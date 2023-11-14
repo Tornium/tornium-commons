@@ -174,4 +174,3 @@ class PersonalStats(BaseModel):
     raidhits = BigIntegerField(null=True)
     territoryclears = BigIntegerField(null=True)
     refills = BigIntegerField(null=True)
-

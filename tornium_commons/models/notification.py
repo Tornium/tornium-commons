@@ -49,4 +49,3 @@ class Notification(BaseModel):
     persistent = BooleanField()
     enabled = BooleanField(default=False)
     options = JSONField(index=False)
-

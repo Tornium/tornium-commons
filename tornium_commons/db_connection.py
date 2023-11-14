@@ -32,18 +32,3 @@ def db() -> PostgresqlExtDatabase:
     _db = PostgresqlExtDatabase("Tornium", dsn=_s.db_dsn.unicode_string())
 
     return _db
-
-
-def requires_db_connection(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        _inner_db = db()
-        _inner_db.connect()
-
-        kwargs["database"] = _inner_db
-        _inner = f(*args, **kwargs)
-
-        _inner_db.close()
-        return _inner
-
-    return wrapper
