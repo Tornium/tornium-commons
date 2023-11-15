@@ -59,23 +59,23 @@ class Faction(BaseModel):
     def get_bankers(self):
         from .user import User
 
-        banker_positions = FactionPosition.select(FactionPosition.pid).where(
-            (FactionPosition.faction_tid == self.tid)
-            & (
-                (FactionPosition.give_money == True)  # noqa: E712
-                | (FactionPosition.give_points == True)  # noqa: E712
-                | (FactionPosition.adjust_balances == True)  # noqa: E712
+        bankers = set(
+            u.tid
+            for u in User.select(User.tid)
+            .join(FactionPosition)
+            .where(
+                (User.faction_id == self.tid)
+                & (
+                    (User.faction_position.give_money == True)
+                    | (User.faction_position.give_points == True)
+                    | (User.faction_position.adjust_balances == True)
+                )
             )
         )
-        bankers = set()
 
-        _position: FactionPosition
-        for _position in banker_positions:
-            bankers.update([user.tid for user in User.select(User.tid).where(User.faction_position == _position.pid)])
-
-        if self.leader != 0:
+        if self.leader is not None:
             bankers.add(self.leader)
-        if self.coleader != 0:
+        if self.coleader is not None:
             bankers.add(self.coleader)
 
         return bankers
