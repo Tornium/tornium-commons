@@ -74,8 +74,8 @@ class Faction(BaseModel):
         )
 
         if self.leader is not None:
-            bankers.add(self.leader)
+            bankers.add(self.leader_id)
         if self.coleader is not None:
-            bankers.add(self.coleader)
+            bankers.add(self.coleader_id)
 
         return bankers
