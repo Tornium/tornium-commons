@@ -28,7 +28,7 @@ from .user import User
 
 class OrganizedCrime(BaseModel):
     faction_tid = IntegerField(index=True)
-    oc_id = IntegerField(primary_key=True)
+    oc_id = IntegerField(index=True)
     crime_id = SmallIntegerField()
     participants = ArrayField(IntegerField, index=False)  # Array of participant user IDs
     time_started = DateTimeField(null=True)
