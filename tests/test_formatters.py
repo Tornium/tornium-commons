@@ -85,7 +85,7 @@ def test_commas_floats(n):
     ],
 )
 def test_text_to_num(s, n):
-    if type(n) == type and isinstance(n(), Exception):
+    if isinstance(n, type) and isinstance(n(), Exception):
         with pytest.raises(n):
             text_to_num(s)
     else:

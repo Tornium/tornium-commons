@@ -19,7 +19,9 @@ import typing
 
 from pydantic import BaseModel, Field, PostgresDsn, RedisDsn
 
-from .altjson import dump, load
+from .altjson import load
+
+_T = typing.TypeVar("_T")
 
 
 class Config(BaseModel):
@@ -43,10 +45,10 @@ class Config(BaseModel):
 
     @classmethod
     def from_json(
-        cls,
+        cls: typing.Type[_T],
         file: typing.Union[pathlib.Path, str] = "settings.json",
         disable_cache=False,
-    ):
+    ) -> _T:
         if not disable_cache:
             from .redisconnection import rds
 
@@ -60,7 +62,7 @@ class Config(BaseModel):
         loaded_data: dict = load(file)
 
         for data_key, data_value in loaded_data.items():
-            if type(data_value) == bool:
+            if isinstance(data_value, bool):
                 data_value = int(data_value)
 
             if not disable_cache:
@@ -73,7 +75,7 @@ class Config(BaseModel):
         return self
 
     @classmethod
-    def from_cache(cls):
+    def from_cache(cls: typing.Type[_T]) -> _T:
         from .redisconnection import rds
 
         _cached_data = {}
@@ -90,7 +92,7 @@ class Config(BaseModel):
 
         return self
 
-    def __getitem__(self, item, disable_cache=False):
+    def __getitem__(self, item: str, disable_cache: bool = False) -> typing.Any:
         if not disable_cache:
             from .redisconnection import rds
 
@@ -112,7 +114,7 @@ class Config(BaseModel):
 
         raise ValueError("Settings unable to be loaded") from None
 
-    def __setitem__(self, key, value, disable_cache=False):
+    def __setitem__(self, key: str, value: typing.Any, disable_cache: bool = False):
         if not disable_cache:
             from .redisconnection import rds
 
@@ -121,7 +123,7 @@ class Config(BaseModel):
 
         setattr(self, key, value)
 
-        if type(value) == bool:
+        if isinstance(value, bool):
             value = int(value)
 
         if not disable_cache:
@@ -129,7 +131,7 @@ class Config(BaseModel):
 
         self.save()
 
-    def load(self, disable_cache=False):
+    def load(self, disable_cache: bool = False):
         if not disable_cache:
             from .redisconnection import rds
 
@@ -139,7 +141,7 @@ class Config(BaseModel):
         loaded_data: dict = load(self._file)
 
         for data_key, data_value in loaded_data.items():
-            if type(data_value) == bool:
+            if isinstance(data_value, bool):
                 data_value = int(data_value)
 
             if not disable_cache:
@@ -159,7 +161,7 @@ class Config(BaseModel):
 
         return self
 
-    def regen_secret(self, nbytes: int = 32):
+    def regen_secret(self, nbytes: int = 32) -> str:
         self.__setitem__("flask_secret", secrets.token_hex(nbytes))
         return self.__getitem__("flask_secret")
 

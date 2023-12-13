@@ -72,11 +72,11 @@ def rel_time(ts: typing.Union[datetime.datetime, int, float]) -> str:
         Relative timestamp string
     """
 
-    if type(ts) == int:
+    if isinstance(ts, int):
         datetime_obj = datetime.datetime.fromtimestamp(ts)
-    elif type(ts) == float:
+    elif isinstance(ts, float):
         datetime_obj = datetime.datetime.fromtimestamp(math.floor(ts))
-    elif type(ts) == datetime.datetime:
+    elif isinstance(ts, datetime.datetime):
         datetime_obj = ts
     else:
         raise AttributeError

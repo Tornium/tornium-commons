@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from peewee import BooleanField, DateTimeField, ForeignKeyField, IntegerField
+from peewee import DateTimeField, ForeignKeyField, IntegerField
 
 from .base_model import BaseModel
 from .user import User

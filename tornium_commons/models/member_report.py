@@ -24,7 +24,6 @@ from peewee import (
 from playhouse.postgres_ext import ArrayField
 
 from .base_model import BaseModel
-from .personal_stats import PersonalStats
 
 
 class MemberReport(BaseModel):

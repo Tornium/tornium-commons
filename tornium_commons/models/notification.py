@@ -17,10 +17,8 @@ from peewee import (
     BigIntegerField,
     BooleanField,
     DateTimeField,
-    DoubleField,
-    IntegerField,
-    SmallIntegerField,
     ForeignKeyField,
+    SmallIntegerField,
 )
 from playhouse.postgres_ext import JSONField
 

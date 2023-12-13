@@ -102,7 +102,7 @@ class Item(BaseModel):
 
         with db().atomic():
             for batch in chunked(bulk_data, 10):
-                cmd = f"""INSERT INTO item (tid, name, description, item_type, market_value, circulation)
+                cmd = """INSERT INTO item (tid, name, description, item_type, market_value, circulation)
                     VALUES
                 """
 
@@ -110,7 +110,7 @@ class Item(BaseModel):
                     cmd += f"({data['tid']}, '{data['name']}', '{data['description']}', '{data['item_type']}', {data['market_value']}, {data['circulation']}),\n"
 
                 cmd = cmd[:-2] + "\n"
-                cmd += f"""ON CONFLICT (tid) DO UPDATE
+                cmd += """ON CONFLICT (tid) DO UPDATE
                     SET name = EXCLUDED.name,
                         description = EXCLUDED.description,
                         item_type = EXCLUDED.item_type,

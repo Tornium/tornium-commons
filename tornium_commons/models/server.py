@@ -80,7 +80,10 @@ class Server(BaseModel):
     stocks_config = JSONField(default={}, index=False)
 
     def get_text_channels(
-        self, discord_get: typing.Union[typing.Callable, celery.Task], api=False, include_threads=False
+        self,
+        discord_get: typing.Union[typing.Callable, celery.Task],
+        api=False,
+        include_threads=False,
     ):
         def parse(value):
             if api:
