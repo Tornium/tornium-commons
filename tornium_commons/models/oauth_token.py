@@ -100,9 +100,6 @@ class OAuthToken(BaseModel):
         if request.user:
             user_id = request.user.get_user_id()
         else:
-            # client_credentials grant_type
-            user_id = request.client.user_id
-            # or, depending on how you treat client_credentials
             user_id = None
 
         OAuthToken.insert(client_id=request.client.client_id, user_id=user_id, **token_data).execute()

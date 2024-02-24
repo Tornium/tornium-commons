@@ -126,9 +126,6 @@ class CustomTokenValidator(_BearerTokenValidator):
         """Check if token is active and matches the requested scopes."""
         from flask import session
 
-        print(session.get("csrf_token"))
-        print(token)
-
         if session.get("csrf_token") != token:
             raise InvalidTokenError(realm=self.realm, extra_attributes=self.extra_attributes)
 
